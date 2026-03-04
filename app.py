@@ -1,88 +1,130 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
-from datetime import date
+from datetime import datetime
+import os
 
-conn = sqlite3.connect("avaliacoes_5s.db", check_same_thread=False)
-c = conn.cursor()
+ARQUIVO = "avaliacoes.csv"
+SENHA = "Axel7070**#"
 
-c.execute("""
-CREATE TABLE IF NOT EXISTS avaliacoes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    colaborador TEXT,
-    data DATE,
-    seiri REAL,
-    seiton REAL,
-    seiso REAL,
-    seiketsu REAL,
-    shitsuke REAL,
-    nota_final REAL,
-    classificacao TEXT
-)
-""")
-conn.commit()
+# -------------------------------
+# criar arquivo se não existir
+# -------------------------------
+
+if not os.path.exists(ARQUIVO):
+    df = pd.DataFrame(columns=[
+        "Data",
+        "Colaborador",
+        "Seiri",
+        "Seiton",
+        "Seiso",
+        "Seiketsu",
+        "Shitsuke",
+        "Media"
+    ])
+    df.to_csv(ARQUIVO, index=False)
+
+df = pd.read_csv(ARQUIVO)
+
+# -------------------------------
+# título
+# -------------------------------
 
 st.title("Sistema de Avaliação 5S")
 
-colaboradores = ["Lucas","João","Maria","Carlos"]
-
-colaborador = st.selectbox("Colaborador", colaboradores)
-data_avaliacao = st.date_input("Data da avaliação", date.today())
-
-st.subheader("Avaliação dos Sensos")
-
-seiri = st.slider("Seiri",0.0,5.0,3.0)
-seiton = st.slider("Seiton",0.0,5.0,3.0)
-seiso = st.slider("Seiso",0.0,5.0,3.0)
-seiketsu = st.slider("Seiketsu",0.0,5.0,3.0)
-shitsuke = st.slider("Shitsuke",0.0,5.0,3.0)
-
-nota = (
-    seiri*0.10 +
-    seiton*0.25 +
-    seiso*0.15 +
-    seiketsu*0.40 +
-    shitsuke*0.10
+menu = st.radio(
+    "Menu",
+    ["Avaliar", "Notas"]
 )
 
-st.metric("Nota Final", round(nota,2))
+# =============================
+# TELA AVALIAR
+# =============================
 
-if nota >= 4.5:
-    classificacao="100%"
-    st.success("Classificação: 100%")
-elif nota >=3.5:
-    classificacao="75%"
-    st.warning("Classificação: 75%")
-else:
-    classificacao="Retido"
-    st.error("Classificação: Retido")
+if menu == "Avaliar":
 
-if st.button("Salvar Avaliação"):
+    senha = st.text_input("Digite a senha", type="password")
 
-    c.execute("""
-    INSERT INTO avaliacoes
-    (colaborador,data,seiri,seiton,seiso,seiketsu,shitsuke,nota_final,classificacao)
-    VALUES (?,?,?,?,?,?,?,?,?)
-    """,(colaborador,data_avaliacao,seiri,seiton,seiso,seiketsu,shitsuke,nota,classificacao))
+    if senha == SENHA:
 
-    conn.commit()
+        st.header("Nova Avaliação")
 
-    st.success("Avaliação salva!")
+        colaborador = st.text_input("Colaborador")
 
-st.divider()
+        col1, col2 = st.columns(2)
 
-df = pd.read_sql_query("SELECT * FROM avaliacoes", conn)
+        with col1:
+            seiri = st.number_input("Seiri", min_value=0, max_value=5)
+            seiton = st.number_input("Seiton", min_value=0, max_value=5)
+            seiso = st.number_input("Seiso", min_value=0, max_value=5)
 
-if not df.empty:
+        with col2:
+            seiketsu = st.number_input("Seiketsu", min_value=0, max_value=5)
+            shitsuke = st.number_input("Shitsuke", min_value=0, max_value=5)
 
-    df['data']=pd.to_datetime(df['data'])
-    df['mes']=df['data'].dt.to_period("M")
+        if st.button("Salvar Avaliação"):
 
-    st.subheader("Histórico")
-    st.dataframe(df)
+            media = (seiri + seiton + seiso + seiketsu + shitsuke) / 5
 
-    st.subheader("Média Mensal")
+            nova_linha = pd.DataFrame([{
+                "Data": datetime.now().strftime("%Y-%m-%d"),
+                "Colaborador": colaborador,
+                "Seiri": seiri,
+                "Seiton": seiton,
+                "Seiso": seiso,
+                "Seiketsu": seiketsu,
+                "Shitsuke": shitsuke,
+                "Media": round(media,2)
+            }])
 
-    media=df.groupby("mes")["nota_final"].mean().reset_index()
+            df2 = pd.concat([df, nova_linha], ignore_index=True)
+            df2.to_csv(ARQUIVO, index=False)
 
-    st.line_chart(media.set_index("mes"))
+            st.success("Avaliação salva com sucesso!")
+
+    elif senha != "":
+        st.error("Senha incorreta")
+
+
+# =============================
+# TELA NOTAS
+# =============================
+
+if menu == "Notas":
+
+    st.header("Resultados")
+
+    if len(df) == 0:
+        st.warning("Nenhuma avaliação registrada")
+    else:
+
+        media_geral = df["Media"].mean()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Média Geral", round(media_geral,2))
+
+        with col2:
+            st.metric("Total Avaliações", len(df))
+
+        st.subheader("Tabela de Avaliações")
+
+        st.dataframe(df)
+
+        st.subheader("Média por Colaborador")
+
+        media_colaborador = df.groupby("Colaborador")["Media"].mean().reset_index()
+
+        st.dataframe(media_colaborador)
+
+        st.subheader("Média dos Sensos")
+
+        medias = {
+            "Seiri": df["Seiri"].mean(),
+            "Seiton": df["Seiton"].mean(),
+            "Seiso": df["Seiso"].mean(),
+            "Seiketsu": df["Seiketsu"].mean(),
+            "Shitsuke": df["Shitsuke"].mean()
+        }
+
+        st.bar_chart(medias)
