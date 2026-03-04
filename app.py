@@ -48,7 +48,7 @@ if not os.path.exists(ARQUIVO_USUARIOS):
 
 
 df = pd.read_csv(ARQUIVO_AVALIACOES)
-usuarios = pd.read_csv(ARQUIVO_USUARIOS)
+usuarios = pd.read_csv(ARQUIVO_USUARIOS).fillna("")
 
 
 
@@ -164,22 +164,23 @@ if menu == "Notas":
 
     # PRIMEIRO ACESSO
 
-    if senha_salva == "":
+    # PRIMEIRO ACESSO
 
-        st.warning("Primeiro acesso. Crie sua senha.")
+if pd.isna(senha_salva) or senha_salva == "":
 
-        nova_senha = st.text_input("Nova senha",type="password")
+    st.warning("Primeiro acesso. Crie sua senha.")
 
-        if st.button("Salvar senha"):
+    nova_senha = st.text_input("Nova senha", type="password")
 
-            usuarios.loc[
-                usuarios["Colaborador"] == usuario,"Senha"
-            ] = nova_senha
+    if st.button("Salvar senha"):
 
-            usuarios.to_csv(ARQUIVO_USUARIOS,index=False)
+        usuarios.loc[
+            usuarios["Colaborador"] == usuario, "Senha"
+        ] = nova_senha
 
-            st.success("Senha cadastrada!")
+        usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
 
+        st.success("Senha cadastrada!")
 
 
     # LOGIN
