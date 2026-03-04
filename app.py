@@ -145,7 +145,6 @@ if menu == "Avaliar":
         st.error("Senha incorreta")
 
 
-
 # -------------------
 # TELA NOTAS
 # -------------------
@@ -154,40 +153,56 @@ if menu == "Notas":
 
     usuario = st.selectbox("Seu nome", colaboradores)
 
-    senha_digitada = st.text_input("Senha", type="password")
-
     senha_salva = usuarios.loc[
         usuarios["Colaborador"] == usuario, "Senha"
     ].values[0]
 
-
-    # PRIMEIRO ACESSO
-    if pd.isna(senha_salva) or senha_salva == "":
+    # ---------------------------------
+    # PRIMEIRO ACESSO (SEM SENHA)
+    # ---------------------------------
+    if senha_salva == "" or pd.isna(senha_salva):
 
         st.warning("Primeiro acesso. Crie sua senha.")
 
-        nova_senha = st.text_input("Nova senha", type="password")
+        nova_senha = st.text_input("Cadastrar nova senha", type="password")
 
-        if st.button("Salvar senha"):
+        confirmar_senha = st.text_input("Confirmar senha", type="password")
 
-            usuarios.loc[
-                usuarios["Colaborador"] == usuario, "Senha"
-            ] = nova_senha
+        if st.button("Cadastrar senha"):
 
-            usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
+            if nova_senha == "" or confirmar_senha == "":
+                st.error("Preencha os campos de senha")
 
-            st.success("Senha cadastrada!")
+            elif nova_senha != confirmar_senha:
+                st.error("As senhas não coincidem")
 
+            else:
 
-    # LOGIN
-    elif senha_digitada == senha_salva:
+                usuarios.loc[
+                    usuarios["Colaborador"] == usuario, "Senha"
+                ] = nova_senha
 
-        st.success("Login realizado")
+                usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
 
-        df_usuario = df[df["Colaborador"] == usuario]
+                st.success("Senha cadastrada com sucesso!")
+                st.info("Atualize a página para fazer login.")
 
-        st.dataframe(df_usuario)
+    # ---------------------------------
+    # LOGIN NORMAL
+    # ---------------------------------
+    else:
 
+        senha_digitada = st.text_input("Digite sua senha", type="password")
 
-    elif senha_digitada != "":
-        st.error("Senha incorreta")
+        if st.button("Entrar"):
+
+            if senha_digitada == senha_salva:
+
+                st.success("Login realizado")
+
+                df_usuario = df[df["Colaborador"] == usuario]
+
+                st.dataframe(df_usuario)
+
+            else:
+                st.error("Senha incorreta")
