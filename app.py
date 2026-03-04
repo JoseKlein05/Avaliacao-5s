@@ -113,23 +113,21 @@ if menu == "Notas":
 
     else:
 
-       meses_disponiveis = [m for m in meses if m in df["Mes"].unique()]
+        meses_disponiveis = [m for m in meses if m in df["Mes"].unique()]
 
-       mes_filtro = st.selectbox(
-           "Selecionar mês",
+        mes_filtro = st.selectbox(
+            "Selecionar mês",
             meses_disponiveis
-           )
+        )
 
         df_mes = df[df["Mes"] == mes_filtro]
 
         media_mes = df_mes.groupby("Colaborador")["Media"].mean().reset_index()
 
-        media_mes["Classificação Bônus"] = media_mes["Media"].apply(classificar_bonus)
-
         st.subheader("Média mensal por colaborador")
 
         st.dataframe(media_mes)
-
+        
         st.subheader("Tabela de avaliações")
 
         st.dataframe(df_mes)
