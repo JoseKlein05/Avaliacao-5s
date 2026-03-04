@@ -6,6 +6,18 @@ import os
 ARQUIVO = "avaliacoes.csv"
 SENHA = "Axel7070**#"
 
+def classificar_bonus(media):
+
+    if media >= 4.5:
+        return "100% Bônus"
+
+    elif media >= 3.5:
+        return "75% Bônus"
+
+    else:
+   
+        return "Sem Bônus"
+        
 colaboradores = [
     "Gabrieli",
     "João",
@@ -56,13 +68,13 @@ if menu == "Avaliar":
         col1, col2 = st.columns(2)
 
         with col1:
-            seiri = st.number_input("Seiri", min_value=0.0, max_value=5.0, step=0.1, format="%.1f")
-            seiton = st.number_input("Seiton", min_value=0.0, max_value=5.0, step=0.1, format="%.1f")
-            seiso = st.number_input("Seiso", min_value=0.0, max_value=5.0, step=0.1, format="%.1f")
+            seiri = st.number_input("Seiri", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            seiton = st.number_input("Seiton", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            seiso = st.number_input("Seiso", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
 
         with col2:
-            seiketsu = st.number_input("Seiketsu", min_value=0.0, max_value=5.0, step=0.1, format="%.1f")
-            shitsuke = st.number_input("Shitsuke", min_value=0.0, max_value=5.0, step=0.1, format="%.1f")
+            seiketsu = st.number_input("Seiketsu", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            shitsuke = st.number_input("Shitsuke", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
 
         if st.button("Salvar Avaliação"):
 
@@ -101,14 +113,18 @@ if menu == "Notas":
 
     else:
 
-        mes_filtro = st.selectbox(
-            "Selecionar mês",
-            df["Mes"].unique()
-        )
+       meses_disponiveis = [m for m in meses if m in df["Mes"].unique()]
+
+       mes_filtro = st.selectbox(
+           "Selecionar mês",
+            meses_disponiveis
+           )
 
         df_mes = df[df["Mes"] == mes_filtro]
 
         media_mes = df_mes.groupby("Colaborador")["Media"].mean().reset_index()
+
+        media_mes["Classificação Bônus"] = media_mes["Media"].apply(classificar_bonus)
 
         st.subheader("Média mensal por colaborador")
 
