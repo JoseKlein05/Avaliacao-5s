@@ -1,3 +1,29 @@
+st.image("Marca Axel__Principal.png", width=350)
+
+st.title("Avaliação 5S")
+st.subheader("Departamento de Engenharia")
+
+st.markdown("""
+<style>
+
+.stApp {
+    background-color: black;
+    color: white;
+}
+
+h1, h2, h3, h4 {
+    color: white;
+}
+
+.stButton>button {
+    background-color: #25a550;
+    color: white;
+    border-radius: 8px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
