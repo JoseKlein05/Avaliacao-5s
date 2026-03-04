@@ -11,15 +11,17 @@ SENHA = "Axel7070**#"
 # -------------------------------
 
 if not os.path.exists(ARQUIVO):
-    df = pd.DataFrame(columns=[
-        "Data",
-        "Colaborador",
-        "Seiri",
-        "Seiton",
-        "Seiso",
-        "Seiketsu",
-        "Shitsuke",
-        "Media"
+       df = pd.DataFrame(columns=[
+            "Mes",
+            "Data",
+            "Colaborador",
+            "Seiri",
+            "Seiton",
+            "Seiso",
+            "Seiketsu",
+            "Shitsuke",
+            "Media"
+])
     ])
     df.to_csv(ARQUIVO, index=False)
 
@@ -48,24 +50,51 @@ if menu == "Avaliar":
 
         st.header("Nova Avaliação")
 
-        colaborador = st.text_input("Colaborador")
+        colaborador =  [
+                        "Gabrieli",
+                        "João",
+                        "Lucas",
+                        "Luiz",
+                        "Maurício"
+                        ]
+        
+        mes = st.selectbox(
+                "Mês da Avaliação",
+                [
+                    "Janeiro",
+                    "Fevereiro",
+                    "Março",
+                    "Abril",
+                    "Maio",
+                    "Junho",
+                    "Julho",
+                    "Agosto",
+                    "Setembro",
+                    "Outubro",
+                    "Novembro",
+                    "Dezembro"
+                ]
+)
+
+        colaborador = st.selectbox("Colaborador", colaboradores)
 
         col1, col2 = st.columns(2)
 
         with col1:
-            seiri = st.number_input("Seiri", min_value=0, max_value=5)
-            seiton = st.number_input("Seiton", min_value=0, max_value=5)
-            seiso = st.number_input("Seiso", min_value=0, max_value=5)
+            seiri = st.number_input("Seiri", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            seiton = st.number_input("Seiton", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            seiso = st.number_input("Seiso", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
 
         with col2:
-            seiketsu = st.number_input("Seiketsu", min_value=0, max_value=5)
-            shitsuke = st.number_input("Shitsuke", min_value=0, max_value=5)
+            seiketsu = st.number_input("Seiketsu", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
+            shitsuke = st.number_input("Shitsuke", min_value=0.0, max_value=5.0, step=0.5, format="%.1f")
 
         if st.button("Salvar Avaliação"):
 
             media = (seiri + seiton + seiso + seiketsu + shitsuke) / 5
 
-            nova_linha = pd.DataFrame([{
+           nova_linha = pd.DataFrame([{
+                "Mes": mes,
                 "Data": datetime.now().strftime("%Y-%m-%d"),
                 "Colaborador": colaborador,
                 "Seiri": seiri,
@@ -111,9 +140,26 @@ if menu == "Notas":
 
         st.dataframe(df)
 
-        st.subheader("Média por Colaborador")
+        st.subheader("Média mensal por colaborador")
+
+        media_mensal = df.groupby(["Mes","Colaborador"])["Media"].mean().reset_index()
+
+        st.dataframe(media_mensal)
 
         media_colaborador = df.groupby("Colaborador")["Media"].mean().reset_index()
+
+        mes_filtro = st.selectbox(
+             "Selecionar mês",
+             df["Mes"].unique()
+         )
+
+        df_mes = df[df["Mes"] == mes_filtro]
+
+        st.subheader("Média do mês")
+
+        media_mes = df_mes.groupby("Colaborador")["Media"].mean().reset_index()
+
+        st.dataframe(media_mes)
 
         st.dataframe(media_colaborador)
 
