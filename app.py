@@ -1,295 +1,79 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import os
-
-# LOGO
-st.image("logo_axel.png", width=350)
-
-# TITULO
-st.title("Avaliação 5S")
-st.subheader("Departamento de Engenharia")
-
-st.markdown("""
-<style>
-
-.stApp {
-    background-color: black;
-    color: white;
-}
-
-h1, h2, h3, h4 {
-    color: white;
-}
-
-.stButton>button {
-    background-color: #25a550;
-    color: white;
-    border-radius: 8px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ==============================
-# CONFIGURAÇÕES
-# ==============================
-
-ARQUIVO = "avaliacoes.csv"
-SENHA = "Axel7070**#"
-
-
-# ==============================
-# LISTAS
-# ==============================
-
-colaboradores = [
-    "Gabrieli",
-    "João",
-    "Lucas",
-    "Luiz",
-    "Maurício"
-]
-
-meses = [
-    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
-]
-
-
-# ==============================
-# FUNÇÃO CLASSIFICAÇÃO BÔNUS
-# ==============================
-
-def classificar_bonus(media):
-
-    if media >= 4.5:
-        return "100% Bônus"
-
-    elif media >= 3.5:
-        return "75% Bônus"
-
-    else:
-        return "Sem Bônus"
-
-
-# ==============================
-# CRIAR ARQUIVO SE NÃO EXISTIR
-# ==============================
-
-if not os.path.exists(ARQUIVO):
-
-    df = pd.DataFrame(columns=[
-        "Mes",
-        "Data",
-        "Colaborador",
-        "Seiri",
-        "Seiton",
-        "Seiso",
-        "Seiketsu",
-        "Shitsuke",
-        "Media"
-    ])
-
-    df.to_csv(ARQUIVO, index=False)
-
-
-df = pd.read_csv(ARQUIVO)
-
-
-# ==============================
-# TÍTULO
-# ==============================
-
-st.title("Sistema de Avaliação 5S")
-
-
-menu = st.radio(
-    "Menu",
-    ["Avaliar", "Notas"]
-)
-
-
-# ==============================
-# TELA AVALIAR
-# ==============================
-
-if menu == "Avaliar":
-
-    senha = st.text_input("Digite a senha", type="password")
-
-    if senha == SENHA:
-
-        st.header("Nova Avaliação")
-
-        colaborador = st.selectbox(
-            "Colaborador",
-            colaboradores
-        )
-
-        mes = st.selectbox(
-            "Mês da Avaliação",
-            meses
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            seiri = st.number_input(
-                "Seiri",
-                min_value=0.0,
-                max_value=5.0,
-                step=0.1,
-                format="%.1f"
-            )
-
-            seiton = st.number_input(
-                "Seiton",
-                min_value=0.0,
-                max_value=5.0,
-                step=0.1,
-                format="%.1f"
-            )
-
-            seiso = st.number_input(
-                "Seiso",
-                min_value=0.0,
-                max_value=5.0,
-                step=0.1,
-                format="%.1f"
-            )
-
-        with col2:
-
-            seiketsu = st.number_input(
-                "Seiketsu",
-                min_value=0.0,
-                max_value=5.0,
-                step=0.1,
-                format="%.1f"
-            )
-
-            shitsuke = st.number_input(
-                "Shitsuke",
-                min_value=0.0,
-                max_value=5.0,
-                step=0.1,
-                format="%.1f"
-            )
-
-        if st.button("Salvar Avaliação"):
-
-            media = (
-                seiri +
-                seiton +
-                seiso +
-                seiketsu +
-                shitsuke
-            ) / 5
-
-            nova_linha = pd.DataFrame([{
-
-                "Mes": mes,
-
-                "Data": datetime.now().strftime("%Y-%m-%d"),
-
-                "Colaborador": colaborador,
-
-                "Seiri": seiri,
-                "Seiton": seiton,
-                "Seiso": seiso,
-                "Seiketsu": seiketsu,
-                "Shitsuke": shitsuke,
-
-                "Media": round(media, 2)
-
-            }])
-
-            df2 = pd.concat([df, nova_linha], ignore_index=True)
-
-            df2.to_csv(ARQUIVO, index=False)
-
-            st.success("Avaliação salva com sucesso!")
-
-    elif senha != "":
-        st.error("Senha incorreta")
-
-
-# ==============================
-# TELA NOTAS
-# ==============================
-
 if menu == "Notas":
 
-    st.header("Resultados")
+    usuario = st.selectbox(
+        "Seu nome",
+        colaboradores
+    )
 
-    if len(df) == 0:
+    senha_digitada = st.text_input(
+        "Senha",
+        type="password"
+    )
 
-        st.warning("Nenhuma avaliação registrada")
+    senha_salva = usuarios.loc[
+        usuarios["Colaborador"] == usuario,
+        "Senha"
+    ].values[0]
 
-    else:
 
-        meses_disponiveis = [
-            m for m in meses
-            if m in df["Mes"].unique()
+    # PRIMEIRO ACESSO
+    if senha_salva == "":
+
+        st.warning("Primeiro acesso. Crie sua senha.")
+
+        nova_senha = st.text_input("Criar nova senha", type="password")
+
+        if st.button("Cadastrar senha"):
+
+            usuarios.loc[
+                usuarios["Colaborador"] == usuario,
+                "Senha"
+            ] = nova_senha
+
+            usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
+
+            st.success("Senha cadastrada com sucesso!")
+
+
+    # LOGIN CORRETO
+    elif senha_digitada == senha_salva:
+
+        st.success("Login realizado")
+
+        df_usuario = df[
+            df["Colaborador"] == usuario
         ]
 
-        mes_filtro = st.selectbox(
-            "Selecionar mês",
-            meses_disponiveis
-        )
+        if len(df_usuario) == 0:
 
-        df_mes = df[df["Mes"] == mes_filtro]
+            st.info("Nenhuma avaliação encontrada")
 
+        else:
 
-        # ==============================
-        # MÉDIA POR COLABORADOR
-        # ==============================
+            mes_filtro = st.selectbox(
+                "Mês",
+                df_usuario["Mes"].unique()
+            )
 
-        media_mes = (
-            df_mes
-            .groupby("Colaborador")["Media"]
-            .mean()
-            .reset_index()
-        )
+            df_mes = df_usuario[
+                df_usuario["Mes"] == mes_filtro
+            ]
 
-        media_mes["Classificação Bônus"] = media_mes["Media"].apply(classificar_bonus)
+            media = df_mes["Media"].mean()
 
+            st.metric(
+                "Média do mês",
+                round(media,2)
+            )
 
-        st.subheader("Média mensal por colaborador")
+            st.write(
+                "Classificação:",
+                classificar_bonus(media)
+            )
 
-        st.dataframe(media_mes)
-
-
-        # ==============================
-        # TABELA COMPLETA
-        # ==============================
-
-        st.subheader("Avaliações registradas")
-
-        st.dataframe(df_mes)
+            st.dataframe(df_mes)
 
 
-        # ==============================
-        # MÉDIA DOS SENSOS
-        # ==============================
-
-        st.subheader("Média dos Sensos")
-
-        medias = {
-
-            "Seiri": df_mes["Seiri"].mean(),
-
-            "Seiton": df_mes["Seiton"].mean(),
-
-            "Seiso": df_mes["Seiso"].mean(),
-
-            "Seiketsu": df_mes["Seiketsu"].mean(),
-
-            "Shitsuke": df_mes["Shitsuke"].mean()
-
-        }
-
-        st.bar_chart(medias)
+    # SENHA ERRADA
+    elif senha_digitada != "":
+        st.error("Senha incorreta")
