@@ -152,39 +152,34 @@ if menu == "Avaliar":
 
 if menu == "Notas":
 
-    usuario = st.selectbox("Seu nome",colaboradores)
+    usuario = st.selectbox("Seu nome", colaboradores)
 
     senha_digitada = st.text_input("Senha", type="password")
 
     senha_salva = usuarios.loc[
-        usuarios["Colaborador"] == usuario,"Senha"
+        usuarios["Colaborador"] == usuario, "Senha"
     ].values[0]
 
 
-
     # PRIMEIRO ACESSO
+    if pd.isna(senha_salva) or senha_salva == "":
 
-    # PRIMEIRO ACESSO
+        st.warning("Primeiro acesso. Crie sua senha.")
 
-if pd.isna(senha_salva) or senha_salva == "":
+        nova_senha = st.text_input("Nova senha", type="password")
 
-    st.warning("Primeiro acesso. Crie sua senha.")
+        if st.button("Salvar senha"):
 
-    nova_senha = st.text_input("Nova senha", type="password")
+            usuarios.loc[
+                usuarios["Colaborador"] == usuario, "Senha"
+            ] = nova_senha
 
-    if st.button("Salvar senha"):
+            usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
 
-        usuarios.loc[
-            usuarios["Colaborador"] == usuario, "Senha"
-        ] = nova_senha
-
-        usuarios.to_csv(ARQUIVO_USUARIOS, index=False)
-
-        st.success("Senha cadastrada!")
+            st.success("Senha cadastrada!")
 
 
     # LOGIN
-
     elif senha_digitada == senha_salva:
 
         st.success("Login realizado")
@@ -192,7 +187,6 @@ if pd.isna(senha_salva) or senha_salva == "":
         df_usuario = df[df["Colaborador"] == usuario]
 
         st.dataframe(df_usuario)
-
 
 
     elif senha_digitada != "":
