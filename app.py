@@ -81,7 +81,7 @@ h1,h2,h3,h4{color:white}
 
 
 
-st.image("Marca Axel__Principal.png", width=350)
+st.image("logo_axel.png", width=350)
 
 st.title("Sistema de Avaliação 5S")
 
