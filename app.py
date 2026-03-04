@@ -1,5 +1,12 @@
-st.image("Marca Axel__Principal.png", width=350)
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import os
 
+# LOGO
+st.image("logo_axel.png", width=350)
+
+# TITULO
 st.title("Avaliação 5S")
 st.subheader("Departamento de Engenharia")
 
@@ -23,11 +30,6 @@ h1, h2, h3, h4 {
 
 </style>
 """, unsafe_allow_html=True)
-
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import os
 
 
 # ==============================
