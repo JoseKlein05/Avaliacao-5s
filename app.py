@@ -3,9 +3,9 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# ------------------------------
+# ----------------------------
 # CONFIGURAÇÃO
-# ------------------------------
+# ----------------------------
 
 ARQUIVO = "avaliacoes.csv"
 ARQUIVO_USUARIOS = "usuarios.csv"
@@ -24,9 +24,9 @@ meses = [
     "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
 ]
 
-# ------------------------------
+# ----------------------------
 # ESTILO VISUAL AXEL
-# ------------------------------
+# ----------------------------
 
 st.set_page_config(layout="wide")
 
@@ -49,26 +49,22 @@ border-radius:6px;
 border:none;
 }
 
-.stSelectbox, .stTextInput{
-color:white;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------
+# ----------------------------
 # LOGO
-# ------------------------------
+# ----------------------------
 
 if os.path.exists("logo_axel.png"):
     st.image("logo_axel.png", width=350)
-    
+
 st.title("Sistema de Avaliação 5S")
 st.caption("Departamento de Engenharia")
 
-# ------------------------------
+# ----------------------------
 # FUNÇÃO BONUS
-# ------------------------------
+# ----------------------------
 
 def classificar_bonus(media):
 
@@ -87,9 +83,9 @@ def classificar_bonus(media):
     else:
         return "Sem Bônus"
 
-# ------------------------------
+# ----------------------------
 # CRIA ARQUIVOS
-# ------------------------------
+# ----------------------------
 
 if not os.path.exists(ARQUIVO):
 
@@ -103,21 +99,25 @@ if not os.path.exists(ARQUIVO):
 
 if not os.path.exists(ARQUIVO_USUARIOS):
 
-    df = pd.DataFrame({
+    dfu = pd.DataFrame({
         "Colaborador":colaboradores,
         "Senha":[""]*len(colaboradores)
     })
 
-    df.to_csv(ARQUIVO_USUARIOS,index=False)
+    dfu.to_csv(ARQUIVO_USUARIOS,index=False)
+
+# ----------------------------
+# CARREGA DADOS
+# ----------------------------
 
 df = pd.read_csv(ARQUIVO)
-usuarios = pd.read_csv(ARQUIVO_USUARIOS)
 
-usuarios["Senha"] = usuarios["Senha"].fillna("")
+usuarios = pd.read_csv(ARQUIVO_USUARIOS).fillna("")
+usuarios["Senha"] = usuarios["Senha"].astype(str)
 
-# ------------------------------
+# ----------------------------
 # MENU
-# ------------------------------
+# ----------------------------
 
 st.sidebar.title("Menu")
 
@@ -126,9 +126,9 @@ menu = st.sidebar.radio(
     ["Avaliar","Notas"]
 )
 
-# ------------------------------
+# ----------------------------
 # TELA AVALIAÇÃO
-# ------------------------------
+# ----------------------------
 
 if menu == "Avaliar":
 
@@ -138,15 +138,9 @@ if menu == "Avaliar":
 
         st.subheader("Nova Avaliação")
 
-        colaborador = st.selectbox(
-            "Colaborador",
-            colaboradores
-        )
+        colaborador = st.selectbox("Colaborador", colaboradores)
 
-        data = st.date_input(
-            "Data da avaliação",
-            datetime.today()
-        )
+        data = st.date_input("Data da avaliação", datetime.today())
 
         mes = meses[data.month-1]
 
@@ -195,9 +189,9 @@ if menu == "Avaliar":
     elif senha != "":
         st.error("Senha incorreta")
 
-# ------------------------------
+# ----------------------------
 # TELA NOTAS
-# ------------------------------
+# ----------------------------
 
 if menu == "Notas":
 
@@ -205,9 +199,11 @@ if menu == "Notas":
 
     senha_digitada = st.text_input("Digite sua senha", type="password")
 
-    senha_salva = usuarios.loc[
-        usuarios["Colaborador"] == usuario, "Senha"
-    ].values[0]
+    senha_salva = str(
+        usuarios.loc[
+            usuarios["Colaborador"] == usuario, "Senha"
+        ].values[0]
+    ).strip()
 
     # PRIMEIRO ACESSO
     if senha_salva == "":
@@ -220,7 +216,7 @@ if menu == "Notas":
 
             usuarios.loc[
                 usuarios["Colaborador"] == usuario, "Senha"
-            ] = nova_senha
+            ] = str(nova_senha).strip()
 
             usuarios.to_csv(ARQUIVO_USUARIOS,index=False)
 
@@ -232,7 +228,7 @@ if menu == "Notas":
 
         if st.button("Entrar"):
 
-            if senha_digitada.strip() == senha_salva.strip():
+            if str(senha_digitada).strip() == senha_salva:
 
                 st.success("Login realizado")
 
