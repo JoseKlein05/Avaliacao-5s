@@ -25,7 +25,7 @@ meses = [
 ]
 
 # ----------------------------
-# ESTILO VISUAL AXEL
+# ESTILO VISUAL
 # ----------------------------
 
 st.set_page_config(layout="wide")
@@ -84,6 +84,19 @@ def classificar_bonus(media):
         return "Sem Bônus"
 
 # ----------------------------
+# FUNÇÃO CARREGAR USUÁRIOS
+# ----------------------------
+
+def carregar_usuarios():
+
+    usuarios = pd.read_csv(ARQUIVO_USUARIOS).fillna("")
+
+    usuarios["Colaborador"] = usuarios["Colaborador"].astype(str).str.strip()
+    usuarios["Senha"] = usuarios["Senha"].astype(str).str.strip()
+
+    return usuarios
+
+# ----------------------------
 # CRIA ARQUIVOS
 # ----------------------------
 
@@ -99,21 +112,19 @@ if not os.path.exists(ARQUIVO):
 
 if not os.path.exists(ARQUIVO_USUARIOS):
 
-    dfu = pd.DataFrame({
+    usuarios = pd.DataFrame({
         "Colaborador":colaboradores,
         "Senha":[""]*len(colaboradores)
     })
 
-    dfu.to_csv(ARQUIVO_USUARIOS,index=False)
+    usuarios.to_csv(ARQUIVO_USUARIOS,index=False)
 
 # ----------------------------
-# CARREGA DADOS
+# CARREGAR DADOS
 # ----------------------------
 
 df = pd.read_csv(ARQUIVO)
-
-usuarios = pd.read_csv(ARQUIVO_USUARIOS).fillna("")
-usuarios["Senha"] = usuarios["Senha"].astype(str)
+usuarios = carregar_usuarios()
 
 # ----------------------------
 # MENU
@@ -195,44 +206,65 @@ if menu == "Avaliar":
 
 if menu == "Notas":
 
+    usuarios = carregar_usuarios()
+
     usuario = st.selectbox("Seu nome", colaboradores)
+    usuario = str(usuario).strip()
 
     senha_digitada = st.text_input("Digite sua senha", type="password")
+    senha_digitada = str(senha_digitada).strip()
 
-    senha_salva = str(
-        usuarios.loc[
-            usuarios["Colaborador"] == usuario, "Senha"
-        ].values[0]
-    ).strip()
+    senha_salva = usuarios.loc[
+        usuarios["Colaborador"] == usuario, "Senha"
+    ].values[0]
+
+    senha_salva = str(senha_salva).strip()
 
     # PRIMEIRO ACESSO
     if senha_salva == "":
 
         st.warning("Primeiro acesso. Crie sua senha.")
 
-        nova_senha = st.text_input("Nova senha", type="password")
+        nova_senha = st.text_input("Nova senha", type="password", key="nova_senha")
 
         if st.button("Salvar senha"):
 
-            usuarios.loc[
-                usuarios["Colaborador"] == usuario, "Senha"
-            ] = str(nova_senha).strip()
+            nova_senha = str(nova_senha).strip()
 
-            usuarios.to_csv(ARQUIVO_USUARIOS,index=False)
+            if nova_senha == "":
+                st.error("A senha não pode ser vazia")
 
-            st.success("Senha cadastrada!")
+            else:
 
-            st.rerun()
+                usuarios.loc[
+                    usuarios["Colaborador"] == usuario, "Senha"
+                ] = nova_senha
+
+                usuarios.to_csv(ARQUIVO_USUARIOS,index=False)
+
+                st.success("Senha cadastrada!")
+
+                st.rerun()
 
     else:
 
         if st.button("Entrar"):
 
-            if str(senha_digitada).strip() == senha_salva:
+            usuarios = carregar_usuarios()
+
+            senha_salva = usuarios.loc[
+                usuarios["Colaborador"] == usuario, "Senha"
+            ].values[0]
+
+            senha_salva = str(senha_salva).strip()
+
+            if senha_digitada == senha_salva:
 
                 st.success("Login realizado")
 
-                df_usuario = df[df["Colaborador"] == usuario]
+                df_usuario = df[
+                    df["Colaborador"].astype(str).str.strip() == usuario
+                ]
 
                 if len(df_usuario) == 0:
 
